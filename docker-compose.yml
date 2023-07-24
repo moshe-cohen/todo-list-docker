@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./todo-list-server
+      dockerfile: Dockerfile
+    volumes:
+      - ./todo-list-server:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - PGHOST=db
+      - PGUSER=postgres
+      - PGPASSWORD=postgrespassword
+      - PGDB=postgresdb
+      - PGPORT=5432
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - backend
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_DB=postgresdb
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+    depends_on:
+      - frontend
+volumes:
+  postgres_data:
